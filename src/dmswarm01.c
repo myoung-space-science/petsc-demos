@@ -328,9 +328,9 @@ int main(int argc, char **args)
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n--------------------------------------------------\n\n"));
   PetscCall(InitializeParticlesFromCellDM(&swarm, &user, PETSC_TRUE));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n--------------------------------------------------\n\n"));
-  PetscCall(InitializeParticlesFromCellDM(&swarm, &user, PETSC_FALSE));
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n--------------------------------------------------\n\n"));
   PetscCall(InitializeParticlesFromCoordinates(&swarm, &user, PETSC_TRUE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n--------------------------------------------------\n\n"));
+  PetscCall(InitializeParticlesFromCellDM(&swarm, &user, PETSC_FALSE));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n--------------------------------------------------\n\n"));
   PetscCall(InitializeParticlesFromCoordinates(&swarm, &user, PETSC_FALSE));
 
