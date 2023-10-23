@@ -26,7 +26,9 @@ typedef struct {
 typedef struct {
   Grid grid;
   Particles particles;
-  PetscReal dx, dy, dz;
+  PetscReal xshift;
+  PetscReal yshift;
+  PetscReal zshift;
 } UserContext;
 
 
@@ -52,9 +54,9 @@ ProcessOptions(UserContext *options)
   options->grid.x1 = options->grid.Lx;
   options->grid.y1 = options->grid.Ly;
   options->grid.z1 = options->grid.Lz;
-  options->dx = 0.0;
-  options->dy = 0.0;
-  options->dz = 0.0;
+  options->xshift = 0.0;
+  options->yshift = 0.0;
+  options->zshift = 0.0;
   options->particles.remove = PETSC_FALSE;
 
   PetscCall(PetscOptionsGetInt(NULL, NULL, "-nx", &intArg, &found));
@@ -105,6 +107,18 @@ ProcessOptions(UserContext *options)
   if (found) {
     options->grid.z1 = realArg;
   }
+  PetscCall(PetscOptionsGetReal(NULL, NULL, "--xshift", &realArg, &found));
+  if (found) {
+    options->xshift = realArg;
+  }
+  PetscCall(PetscOptionsGetReal(NULL, NULL, "--yshift", &realArg, &found));
+  if (found) {
+    options->yshift = realArg;
+  }
+  PetscCall(PetscOptionsGetReal(NULL, NULL, "--zshift", &realArg, &found));
+  if (found) {
+    options->zshift = realArg;
+  }
   PetscCall(PetscOptionsGetInt(NULL, NULL, "-np", &intArg, &found));
   if (found) {
     options->particles.np = intArg;
@@ -132,18 +146,6 @@ ProcessOptions(UserContext *options)
     options->grid.bc = DM_BOUNDARY_PERIODIC;
   } else {
     options->grid.bc = DM_BOUNDARY_GHOSTED;
-  }
-  PetscCall(PetscOptionsGetReal(NULL, NULL, "-dx", &realArg, &found));
-  if (found) {
-    options->dx = realArg;
-  }
-  PetscCall(PetscOptionsGetReal(NULL, NULL, "-dy", &realArg, &found));
-  if (found) {
-    options->dy = realArg;
-  }
-  PetscCall(PetscOptionsGetReal(NULL, NULL, "-dz", &realArg, &found));
-  if (found) {
-    options->dz = realArg;
   }
   PetscCall(PetscOptionsGetBool(NULL, NULL, "--remove", &boolArg, &found));
   if (found) {
@@ -234,9 +236,9 @@ ShiftParticles(DM swarm, UserContext user, PetscBool rmpart)
 {
   PetscReal *coords;
   PetscInt   ip, np;
-  PetscReal  dx=user.dx;
-  PetscReal  dy=user.dy;
-  PetscReal  dz=user.dz;
+  PetscReal  xshift=user.xshift;
+  PetscReal  yshift=user.yshift;
+  PetscReal  zshift=user.zshift;
   PetscReal  Lx=user.grid.Lx;
   PetscReal  Ly=user.grid.Ly;
   PetscReal  Lz=user.grid.Lz;
@@ -246,18 +248,18 @@ ShiftParticles(DM swarm, UserContext user, PetscBool rmpart)
 
   PetscCall(DMSwarmGetField(swarm, DMSwarmPICField_coor, NULL, NULL, (void **)&coords));
   PetscCall(DMSwarmGetLocalSize(swarm, &np));
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Shifting particle positions by (%g, %g, %g) <<<\n", dx, dy, dz));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Shifting particle positions by (%g, %g, %g) <<<\n", xshift, yshift, zshift));
   for (ip=0; ip<np; ip++) {
     x = coords[ip*NDIM + 0];
     y = coords[ip*NDIM + 1];
     z = coords[ip*NDIM + 2];
-    x += dx;
+    x += xshift;
     while (x > Lx) {x -= Lx;}
     while (x < 0)  {x += Lx;}
-    y += dy;
+    y += yshift;
     while (y > Ly) {y -= Ly;}
     while (y < 0)  {y += Ly;}
-    z += dz;
+    z += zshift;
     while (z > Lz) {z -= Lz;}
     while (z < 0)  {z += Lz;}
     coords[ip*NDIM + 0] = x;
