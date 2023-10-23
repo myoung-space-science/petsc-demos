@@ -20,13 +20,13 @@ typedef struct {
   PetscInt np;
   PetscInt npc;
   PetscInt npd[NDIM];
+  PetscBool remove;
 } Particles;
 
 typedef struct {
   Grid grid;
   Particles particles;
   PetscReal dx, dy, dz;
-  PetscBool remove;
 } UserContext;
 
 
@@ -55,7 +55,7 @@ ProcessOptions(UserContext *options)
   options->dx = 0.0;
   options->dy = 0.0;
   options->dz = 0.0;
-  options->remove = PETSC_FALSE;
+  options->particles.remove = PETSC_FALSE;
 
   PetscCall(PetscOptionsGetInt(NULL, NULL, "-nx", &intArg, &found));
   if (found) {
@@ -147,7 +147,7 @@ ProcessOptions(UserContext *options)
   }
   PetscCall(PetscOptionsGetBool(NULL, NULL, "--remove", &boolArg, &found));
   if (found) {
-    options->remove = boolArg;
+    options->particles.remove = boolArg;
   }
 
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -332,15 +332,15 @@ int main(int argc, char **args)
   PetscCall(CreateSwarmDM(&swarm, &mesh, &user));
 
   // Set initial particle positions and velocities.
-  if (user.remove) {
+  if (user.particles.remove) {
     strcpy(rmstr, "-------------------- WITH REMOVAL -----------------------");
   } else {
     strcpy(rmstr, "-------------------- WITHOUT REMOVAL --------------------");
   }
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n%s\n\n", rmstr));
-  PetscCall(InitializeParticlesFromCellDM(&swarm, &user, user.remove));
+  PetscCall(InitializeParticlesFromCellDM(&swarm, &user, user.particles.remove));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n%s\n\n", rmstr));
-  PetscCall(InitializeParticlesFromCoordinates(&swarm, &user, user.remove));
+  PetscCall(InitializeParticlesFromCoordinates(&swarm, &user, user.particles.remove));
 
   // Free memory.
   PetscCall(DMDestroy(&mesh));
