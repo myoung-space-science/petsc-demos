@@ -25,6 +25,7 @@ typedef struct {
 typedef struct {
   Grid grid;
   Particles particles;
+  PetscReal dx, dy, dz;
 } UserContext;
 
 
@@ -50,6 +51,9 @@ ProcessOptions(UserContext *options)
   options->grid.x1 = options->grid.Lx;
   options->grid.y1 = options->grid.Ly;
   options->grid.z1 = options->grid.Lz;
+  options->dx = 0.0;
+  options->dy = 0.0;
+  options->dz = 0.0;
 
   PetscCall(PetscOptionsGetInt(NULL, NULL, "-nx", &intArg, &found));
   if (found) {
@@ -127,6 +131,18 @@ ProcessOptions(UserContext *options)
   } else {
     options->grid.bc = DM_BOUNDARY_GHOSTED;
   }
+  PetscCall(PetscOptionsGetReal(NULL, NULL, "-dx", &realArg, &found));
+  if (found) {
+    options->dx = realArg;
+  }
+  PetscCall(PetscOptionsGetReal(NULL, NULL, "-dy", &realArg, &found));
+  if (found) {
+    options->dy = realArg;
+  }
+  PetscCall(PetscOptionsGetReal(NULL, NULL, "-dz", &realArg, &found));
+  if (found) {
+    options->dz = realArg;
+  }
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -186,10 +202,48 @@ CreateSwarmDM(DM *swarm, DM *mesh, UserContext *user)
   np = user->particles.np / size;
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Setting local sizes <<<\n"));
   PetscCall(DMSwarmSetLocalSizes(*swarm, np, bufsize));
-  PetscCall(DMView(*swarm, PETSC_VIEWER_STDOUT_WORLD));
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating with replacement <<<\n"));
   PetscCall(DMSwarmMigrate(*swarm, PETSC_TRUE));
   PetscCall(DMView(*swarm, PETSC_VIEWER_STDOUT_WORLD));
+
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+
+static PetscErrorCode
+ShiftParticles(DM swarm, UserContext user, PetscBool remove)
+{
+  PetscReal *coords;
+  PetscInt   ip, np;
+  PetscReal  dx=user.dx;
+  PetscReal  dy=user.dy;
+  PetscReal  dz=user.dz;
+
+  PetscFunctionBeginUser;
+
+  PetscCall(DMSwarmGetField(swarm, DMSwarmPICField_coor, NULL, NULL, (void **)&coords));
+  PetscCall(DMSwarmGetLocalSize(swarm, &np));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Shifting particle positions by (%g, %g, %g) <<<\n", dx, dy, dz));
+  for (ip=0; ip<np; ip++) {
+    coords[ip*NDIM + 0] += dx;
+    coords[ip*NDIM + 1] += dy;
+    coords[ip*NDIM + 2] += dz;
+  }
+  PetscCall(DMSwarmRestoreField(swarm, DMSwarmPICField_coor, NULL, NULL, (void **)&coords));
+  PetscCall(DMView(swarm, PETSC_VIEWER_STDOUT_WORLD));
+  if (remove) {
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating with removal <<<\n"));
+  } else {
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating without removal <<<\n"));
+  }
+  PetscCall(DMSwarmMigrate(swarm, remove));
+  PetscCall(DMView(swarm, PETSC_VIEWER_STDOUT_WORLD));
+  if (remove) {
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating again with removal <<<\n"));
+  } else {
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating again without removal <<<\n"));
+  }
+  PetscCall(DMSwarmMigrate(swarm, remove));
+  PetscCall(DMView(swarm, PETSC_VIEWER_STDOUT_WORLD));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -210,6 +264,7 @@ InitializeParticlesFromCellDM(DM *swarm, UserContext *user, PetscBool remove)
   }
   PetscCall(DMSwarmMigrate(*swarm, remove));
   PetscCall(DMView(*swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ShiftParticles(*swarm, *user, remove));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -243,6 +298,7 @@ InitializeParticlesFromCoordinates(DM *swarm, UserContext *user, PetscBool remov
   }
   PetscCall(DMSwarmMigrate(*swarm, remove));
   PetscCall(DMView(*swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ShiftParticles(*swarm, *user, remove));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -269,9 +325,13 @@ int main(int argc, char **args)
   PetscCall(CreateSwarmDM(&swarm, &mesh, &user));
 
   // Set initial particle positions and velocities.
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n--------------------------------------------------\n\n"));
   PetscCall(InitializeParticlesFromCellDM(&swarm, &user, PETSC_TRUE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n--------------------------------------------------\n\n"));
   PetscCall(InitializeParticlesFromCellDM(&swarm, &user, PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n--------------------------------------------------\n\n"));
   PetscCall(InitializeParticlesFromCoordinates(&swarm, &user, PETSC_TRUE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n--------------------------------------------------\n\n"));
   PetscCall(InitializeParticlesFromCoordinates(&swarm, &user, PETSC_FALSE));
 
   // Free memory.
