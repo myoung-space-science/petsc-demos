@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Declare the top-level directory for convenience.
+topdir=~/sandbox/petsc-demos
+
+# Read the target program from the command line.
+target="${1}"
+
+# Exit with error if the user didn't provide a target program.
+if [ -z "${target}" ]; then
+    echo "Missing target program. Exiting."
+    exit 1
+fi
+
+# Exit with error if
+# -u any variable is unbound (e.g., ${foo} without declaring `foo=`)
+# -e any pipeline returns an error
+set -ue
+
+# Declare the target directory and create it if necessary.
+progdir=${topdir}/programs/${target}
+/bin/mkdir -p ${progdir}
+
+# Build the program
+# 1. move to `src`
+# 2. build the target executable
+# 3. move the executable to the program-specific directory
+# 4. return to the original directory
+pushd ${topdir}/src &> /dev/null
+make ${target}
+/bin/mv ${target} ${progdir}
+popd &> /dev/null
+
+# Echo success
+echo 
+echo "Built ${progdir}/${target}"
+
+
