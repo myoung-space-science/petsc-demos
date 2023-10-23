@@ -13,6 +13,7 @@ typedef struct {
   PetscReal Lx, Ly, Lz;
   PetscReal x0, y0, z0;
   PetscReal x1, y1, z1;
+  DMBoundaryType bc;
 } Grid;
 
 typedef struct {
@@ -35,6 +36,7 @@ ProcessOptions(UserContext *options)
   PetscInt intArg;
   PetscReal realArg;
   PetscBool found;
+  char      strArg[PETSC_MAX_PATH_LEN];
 
   options->grid.nx = 7;
   options->grid.ny = 7;
@@ -119,6 +121,12 @@ ProcessOptions(UserContext *options)
     options->particles.npd[1] = options->grid.ny;
     options->particles.npd[2] = options->grid.nz;
   }
+  PetscCall(PetscOptionsGetString(NULL, NULL, "-bc", strArg, sizeof(strArg), &found));
+  if (found && (strcmp(strArg, "periodic")==0)) {
+    options->grid.bc = DM_BOUNDARY_PERIODIC;
+  } else {
+    options->grid.bc = DM_BOUNDARY_GHOSTED;
+  }
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -130,9 +138,9 @@ CreateMeshDM(DM *mesh, UserContext *user)
   PetscInt       nx=user->grid.nx;
   PetscInt       ny=user->grid.ny;
   PetscInt       nz=user->grid.nz;
-  DMBoundaryType xBC=DM_BOUNDARY_PERIODIC;
-  DMBoundaryType yBC=DM_BOUNDARY_PERIODIC;
-  DMBoundaryType zBC=DM_BOUNDARY_PERIODIC;
+  DMBoundaryType xBC=user->grid.bc;
+  DMBoundaryType yBC=user->grid.bc;
+  DMBoundaryType zBC=user->grid.bc;
   PetscInt       dof=2;
   PetscInt       width=1;
 
