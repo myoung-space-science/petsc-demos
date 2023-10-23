@@ -181,6 +181,20 @@ CreateMeshDM(DM *mesh, UserContext *user)
 
 
 static PetscErrorCode
+ViewSwarm(DM swarm)
+{
+  PetscInt npT;
+
+  PetscFunctionBeginUser;
+
+  PetscCall(DMView(swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(DMSwarmGetSize(swarm, &npT));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Total number of particles: %d\n", npT));
+
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+static PetscErrorCode
 CreateSwarmDM(DM *swarm, DM *mesh, UserContext *user)
 {
   PetscInt dim;
@@ -209,7 +223,7 @@ CreateSwarmDM(DM *swarm, DM *mesh, UserContext *user)
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Setting local sizes <<<\n"));
   PetscCall(DMSwarmSetLocalSizes(*swarm, np, bufsize));
   PetscCall(DMSwarmMigrate(*swarm, PETSC_TRUE));
-  PetscCall(DMView(*swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ViewSwarm(*swarm));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -251,13 +265,13 @@ ShiftParticles(DM swarm, UserContext user, PetscBool rmpart)
     coords[ip*NDIM + 2] = z;
   }
   PetscCall(DMSwarmRestoreField(swarm, DMSwarmPICField_coor, NULL, NULL, (void **)&coords));
-  PetscCall(DMView(swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ViewSwarm(swarm));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating <<<\n"));
   PetscCall(DMSwarmMigrate(swarm, rmpart));
-  PetscCall(DMView(swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ViewSwarm(swarm));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating again <<<\n"));
   PetscCall(DMSwarmMigrate(swarm, rmpart));
-  PetscCall(DMView(swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ViewSwarm(swarm));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -270,10 +284,10 @@ InitializeParticlesFromCellDM(DM *swarm, UserContext *user, PetscBool rmpart)
 
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Inserting points using cell DM <<<\n"));
   PetscCall(DMSwarmInsertPointsUsingCellDM(*swarm, DMSWARMPIC_LAYOUT_REGULAR, user->particles.npc));
-  PetscCall(DMView(*swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ViewSwarm(*swarm));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating <<<\n"));
   PetscCall(DMSwarmMigrate(*swarm, rmpart));
-  PetscCall(DMView(*swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ViewSwarm(*swarm));
   PetscCall(ShiftParticles(*swarm, *user, rmpart));
 
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -300,10 +314,10 @@ InitializeParticlesFromCoordinates(DM *swarm, UserContext *user, PetscBool rmpar
 
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Inserting points using uniform coordinates <<<\n"));
   PetscCall(DMSwarmSetPointsUniformCoordinates(*swarm, min, max, ndir, INSERT_VALUES));
-  PetscCall(DMView(*swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ViewSwarm(*swarm));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating <<<\n"));
   PetscCall(DMSwarmMigrate(*swarm, rmpart));
-  PetscCall(DMView(*swarm, PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(ViewSwarm(*swarm));
   PetscCall(ShiftParticles(*swarm, *user, rmpart));
 
   PetscFunctionReturn(PETSC_SUCCESS);
