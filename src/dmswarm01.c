@@ -223,6 +223,10 @@ ShiftParticles(DM swarm, UserContext user, PetscBool rmpart)
   PetscReal  dx=user.dx;
   PetscReal  dy=user.dy;
   PetscReal  dz=user.dz;
+  PetscReal  Lx=user.grid.Lx;
+  PetscReal  Ly=user.grid.Ly;
+  PetscReal  Lz=user.grid.Lz;
+  PetscReal  x, y, z;
 
   PetscFunctionBeginUser;
 
@@ -230,9 +234,21 @@ ShiftParticles(DM swarm, UserContext user, PetscBool rmpart)
   PetscCall(DMSwarmGetLocalSize(swarm, &np));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Shifting particle positions by (%g, %g, %g) <<<\n", dx, dy, dz));
   for (ip=0; ip<np; ip++) {
-    coords[ip*NDIM + 0] += dx;
-    coords[ip*NDIM + 1] += dy;
-    coords[ip*NDIM + 2] += dz;
+    x = coords[ip*NDIM + 0];
+    y = coords[ip*NDIM + 1];
+    z = coords[ip*NDIM + 2];
+    x += dx;
+    while (x > Lx) {x -= Lx;}
+    while (x < 0)  {x += Lx;}
+    y += dy;
+    while (y > Ly) {y -= Ly;}
+    while (y < 0)  {y += Ly;}
+    z += dz;
+    while (z > Lz) {z -= Lz;}
+    while (z < 0)  {z += Lz;}
+    coords[ip*NDIM + 0] = x;
+    coords[ip*NDIM + 1] = y;
+    coords[ip*NDIM + 2] = z;
   }
   PetscCall(DMSwarmRestoreField(swarm, DMSwarmPICField_coor, NULL, NULL, (void **)&coords));
   PetscCall(DMView(swarm, PETSC_VIEWER_STDOUT_WORLD));
