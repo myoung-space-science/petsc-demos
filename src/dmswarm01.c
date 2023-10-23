@@ -32,6 +32,50 @@ typedef struct {
 } UserContext;
 
 
+/* Read parameter values from the options database. 
+
+-nx: The number of grid cells in the x dimension
+
+-ny: The number of grid cells in the y dimension
+
+-nz: The number of grid cells in the z dimension
+
+-Lx: The length of the x dimension
+
+-Ly: The length of the y dimension
+
+-Lz: The length of the z dimension
+
+-x0: The lower bound of particle positions in the x dimension
+
+-y0: The lower bound of particle positions in the y dimension
+
+-z0: The lower bound of particle positions in the z dimension
+
+-x1: The upper bound of particle positions in the x dimension
+
+-y1: The upper bound of particle positions in the y dimension
+
+-z1: The upper bound of particle positions in the z dimension
+
+--x-shift: The amount by which to shift particle positions in the x dimension
+
+--y-shift: The amount by which to shift particle positions in the y dimension
+
+--z-shift: The amount by which to shift particle positions in the z dimension
+
+-np: The total number of particles
+
+-npc: The number of particles per cell when using
+`DMSwarmInsertPointsUsingCellDM`
+
+-npd: The number of particles along each dimension when using
+`DMSwarmSetPointsUniformCoordinates`
+
+--periodic: Use periodic boundaries for the grid
+
+--remove: Remove particles from their original MPI rank after migration
+*/
 static PetscErrorCode
 ProcessOptions(UserContext *options)
 {
@@ -40,7 +84,6 @@ ProcessOptions(UserContext *options)
   PetscInt  intArg;
   PetscReal realArg;
   PetscBool boolArg, found;
-  char      strArg[PETSC_MAX_PATH_LEN];
 
   options->grid.nx = 7;
   options->grid.ny = 7;
@@ -107,15 +150,15 @@ ProcessOptions(UserContext *options)
   if (found) {
     options->grid.z1 = realArg;
   }
-  PetscCall(PetscOptionsGetReal(NULL, NULL, "--xshift", &realArg, &found));
+  PetscCall(PetscOptionsGetReal(NULL, NULL, "--x-shift", &realArg, &found));
   if (found) {
     options->xshift = realArg;
   }
-  PetscCall(PetscOptionsGetReal(NULL, NULL, "--yshift", &realArg, &found));
+  PetscCall(PetscOptionsGetReal(NULL, NULL, "--y-shift", &realArg, &found));
   if (found) {
     options->yshift = realArg;
   }
-  PetscCall(PetscOptionsGetReal(NULL, NULL, "--zshift", &realArg, &found));
+  PetscCall(PetscOptionsGetReal(NULL, NULL, "--z-shift", &realArg, &found));
   if (found) {
     options->zshift = realArg;
   }
@@ -141,8 +184,8 @@ ProcessOptions(UserContext *options)
     options->particles.npd[1] = options->grid.ny;
     options->particles.npd[2] = options->grid.nz;
   }
-  PetscCall(PetscOptionsGetString(NULL, NULL, "-bc", strArg, sizeof(strArg), &found));
-  if (found && (strcmp(strArg, "periodic")==0)) {
+  PetscCall(PetscOptionsGetBool(NULL, NULL, "--periodic", &boolArg, &found));
+  if (found) {
     options->grid.bc = DM_BOUNDARY_PERIODIC;
   } else {
     options->grid.bc = DM_BOUNDARY_GHOSTED;
