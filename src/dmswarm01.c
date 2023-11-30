@@ -335,9 +335,6 @@ ShiftParticles(DM swarm, UserContext user, PetscBool rmpart)
   PetscReal  xshift=user.xshift;
   PetscReal  yshift=user.yshift;
   PetscReal  zshift=user.zshift;
-  PetscReal  Lx=user.grid.Lx;
-  PetscReal  Ly=user.grid.Ly;
-  PetscReal  Lz=user.grid.Lz;
   PetscReal  x, y, z;
 
   PetscFunctionBeginUser;
@@ -350,14 +347,8 @@ ShiftParticles(DM swarm, UserContext user, PetscBool rmpart)
     y = coords[ip*NDIM + 1];
     z = coords[ip*NDIM + 2];
     x += xshift;
-    while (x > Lx) {x -= Lx;}
-    while (x < 0)  {x += Lx;}
     y += yshift;
-    while (y > Ly) {y -= Ly;}
-    while (y < 0)  {y += Ly;}
     z += zshift;
-    while (z > Lz) {z -= Lz;}
-    while (z < 0)  {z += Lz;}
     coords[ip*NDIM + 0] = x;
     coords[ip*NDIM + 1] = y;
     coords[ip*NDIM + 2] = z;
