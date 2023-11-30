@@ -16,10 +16,20 @@ typedef struct {
   DMBoundaryType bc;
 } Grid;
 
+/* Supported initialization schemes. */
+typedef enum {
+  INIT_FROM_CELLDM,
+  INIT_FROM_COORDS,
+} InitType;
+const char *InitTypes[] ={
+  "from-celldm", "from-coords", "InitType", "INIT_", NULL
+};
+
 typedef struct {
   PetscInt np;
   PetscInt npc;
   PetscInt npd[NDIM];
+  InitType initType;
   PetscBool remove;
 } Particles;
 
@@ -66,11 +76,14 @@ typedef struct {
 
 -np: The total number of particles
 
+--init: The particle initialization scheme to use.
+{from-celldm, from-coords}
+
 -npc: The number of particles per cell when using
-`DMSwarmInsertPointsUsingCellDM`
+`DMSwarmInsertPointsUsingCellDM` (--init from-celldm)
 
 -npd: The number of particles along each dimension when using
-`DMSwarmSetPointsUniformCoordinates`
+`DMSwarmSetPointsUniformCoordinates` (--init from-coords)
 
 --periodic: Use periodic boundaries for the grid
 
@@ -83,6 +96,7 @@ ProcessOptions(UserContext *options)
 
   PetscInt  intArg;
   PetscReal realArg;
+  PetscEnum enumArg;
   PetscBool boolArg, found;
 
   options->grid.nx = 7;
@@ -193,6 +207,12 @@ ProcessOptions(UserContext *options)
   PetscCall(PetscOptionsGetBool(NULL, NULL, "--remove", &boolArg, &found));
   if (found) {
     options->particles.remove = boolArg;
+  }
+  PetscCall(PetscOptionsGetEnum(NULL, NULL, "--init", InitTypes, &enumArg, &found));
+  if (found) {
+    options->particles.initType = enumArg;
+  } else {
+    options->particles.initType = -1;
   }
 
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -363,13 +383,13 @@ InitializeParticlesFromCellDM(DM *swarm, UserContext *user, PetscBool rmpart)
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Inserting points using cell DM <<<\n"));
   PetscCall(DMSwarmInsertPointsUsingCellDM(*swarm, DMSWARMPIC_LAYOUT_REGULAR, user->particles.npc));
   PetscCall(ViewSwarm(*swarm));
-  PetscCall(OutputSwarmBinary(*swarm, "-from-celldm-0", *user));
+  PetscCall(OutputSwarmBinary(*swarm, "-initial", *user));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating <<<\n"));
   PetscCall(DMSwarmMigrate(*swarm, rmpart));
   PetscCall(ViewSwarm(*swarm));
-  PetscCall(OutputSwarmBinary(*swarm, "-from-celldm-1", *user));
+  PetscCall(OutputSwarmBinary(*swarm, "-migrated", *user));
   PetscCall(ShiftParticles(*swarm, *user, rmpart));
-  PetscCall(OutputSwarmBinary(*swarm, "-from-celldm-2", *user));
+  PetscCall(OutputSwarmBinary(*swarm, "-shifted", *user));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -396,13 +416,13 @@ InitializeParticlesFromCoordinates(DM *swarm, UserContext *user, PetscBool rmpar
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Inserting points using uniform coordinates <<<\n"));
   PetscCall(DMSwarmSetPointsUniformCoordinates(*swarm, min, max, ndir, INSERT_VALUES));
   PetscCall(ViewSwarm(*swarm));
-  PetscCall(OutputSwarmBinary(*swarm, "-from-coords-0", *user));
+  PetscCall(OutputSwarmBinary(*swarm, "-initial", *user));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating <<<\n"));
   PetscCall(DMSwarmMigrate(*swarm, rmpart));
   PetscCall(ViewSwarm(*swarm));
-  PetscCall(OutputSwarmBinary(*swarm, "-from-coords-1", *user));
+  PetscCall(OutputSwarmBinary(*swarm, "-migrated", *user));
   PetscCall(ShiftParticles(*swarm, *user, rmpart));
-  PetscCall(OutputSwarmBinary(*swarm, "-from-coords-2", *user));
+  PetscCall(OutputSwarmBinary(*swarm, "-shifted", *user));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -438,10 +458,20 @@ int main(int argc, char **args)
   } else {
     strcpy(rmstr, "-------------------- WITHOUT REMOVAL --------------------");
   }
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n%s\n\n", rmstr));
-  PetscCall(InitializeParticlesFromCellDM(&swarm, &user, user.particles.remove));
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n%s\n\n", rmstr));
-  PetscCall(InitializeParticlesFromCoordinates(&swarm, &user, user.particles.remove));
+
+  // Choose initialization scheme based on user input.
+  switch (user.particles.initType) {
+  case INIT_FROM_CELLDM:
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n%s\n\n", rmstr));
+    PetscCall(InitializeParticlesFromCellDM(&swarm, &user, user.particles.remove));
+    break;
+  case INIT_FROM_COORDS:
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n%s\n\n", rmstr));
+    PetscCall(InitializeParticlesFromCoordinates(&swarm, &user, user.particles.remove));
+    break;
+  default:
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Skipping initialization <<<\n"));
+  }
 
   // Free memory.
   PetscCall(DMDestroy(&mesh));
