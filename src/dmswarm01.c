@@ -369,6 +369,38 @@ InitializeParticlesFromCoordinates(DM *swarm, UserContext *user, PetscBool rmpar
 }
 
 
+static PetscErrorCode
+OutputSwarmBinary(DM *swarm, const char *insert, UserContext *user)
+{
+  char          posfn[PETSC_MAX_PATH_LEN]="position";
+  PetscViewer   viewer;
+  Vec           target;
+
+  PetscFunctionBeginUser;
+
+  // Build the full file name.
+  PetscCall(PetscStrcat(posfn, insert));
+  PetscCall(PetscStrcat(posfn, ".bin"));
+
+  // Create the binary viewer.
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD, posfn, FILE_MODE_WRITE, &viewer));
+
+  // Write particle positions to a binary file.
+  PetscCall(DMSwarmCreateGlobalVectorFromField(*swarm, DMSwarmPICField_coor, &target));
+  PetscCall(PetscObjectSetName((PetscObject)target, "position"));
+  PetscCall(VecView(target, viewer));
+  PetscCall(DMSwarmDestroyGlobalVectorFromField(*swarm, DMSwarmPICField_coor, &target));
+
+  // Destroy the binary viewer.
+  PetscCall(PetscViewerDestroy(&viewer));
+
+  // Destroy the temporary vector object.
+  PetscCall(VecDestroy(&target));
+
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+
 int main(int argc, char **args)
 {
   UserContext user;
@@ -389,6 +421,9 @@ int main(int argc, char **args)
 
   // Set up particle swarm.
   PetscCall(CreateSwarmDM(&swarm, &mesh, &user));
+
+  // Output initial positions.
+  PetscCall(OutputSwarmBinary(&swarm, "-initial", &user));
 
   // Set initial particle positions and velocities.
   if (user.particles.remove) {
