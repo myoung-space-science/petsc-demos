@@ -241,7 +241,7 @@ ViewSwarm(DM swarm)
 
 
 static PetscErrorCode
-OutputSwarmBinary(DM *swarm, const char *insert, UserContext *user)
+OutputSwarmBinary(DM swarm, const char *insert, UserContext user)
 {
   char          posfn[PETSC_MAX_PATH_LEN]="position";
   PetscViewer   viewer;
@@ -257,10 +257,10 @@ OutputSwarmBinary(DM *swarm, const char *insert, UserContext *user)
   PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD, posfn, FILE_MODE_WRITE, &viewer));
 
   // Write particle positions to a binary file.
-  PetscCall(DMSwarmCreateGlobalVectorFromField(*swarm, DMSwarmPICField_coor, &target));
+  PetscCall(DMSwarmCreateGlobalVectorFromField(swarm, DMSwarmPICField_coor, &target));
   PetscCall(PetscObjectSetName((PetscObject)target, "position"));
   PetscCall(VecView(target, viewer));
-  PetscCall(DMSwarmDestroyGlobalVectorFromField(*swarm, DMSwarmPICField_coor, &target));
+  PetscCall(DMSwarmDestroyGlobalVectorFromField(swarm, DMSwarmPICField_coor, &target));
 
   // Destroy the binary viewer.
   PetscCall(PetscViewerDestroy(&viewer));
@@ -363,13 +363,13 @@ InitializeParticlesFromCellDM(DM *swarm, UserContext *user, PetscBool rmpart)
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Inserting points using cell DM <<<\n"));
   PetscCall(DMSwarmInsertPointsUsingCellDM(*swarm, DMSWARMPIC_LAYOUT_REGULAR, user->particles.npc));
   PetscCall(ViewSwarm(*swarm));
-  PetscCall(OutputSwarmBinary(swarm, "-from-celldm-0", user));
+  PetscCall(OutputSwarmBinary(*swarm, "-from-celldm-0", *user));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating <<<\n"));
   PetscCall(DMSwarmMigrate(*swarm, rmpart));
   PetscCall(ViewSwarm(*swarm));
-  PetscCall(OutputSwarmBinary(swarm, "-from-celldm-1", user));
+  PetscCall(OutputSwarmBinary(*swarm, "-from-celldm-1", *user));
   PetscCall(ShiftParticles(*swarm, *user, rmpart));
-  PetscCall(OutputSwarmBinary(swarm, "-from-celldm-2", user));
+  PetscCall(OutputSwarmBinary(*swarm, "-from-celldm-2", *user));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -396,13 +396,13 @@ InitializeParticlesFromCoordinates(DM *swarm, UserContext *user, PetscBool rmpar
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Inserting points using uniform coordinates <<<\n"));
   PetscCall(DMSwarmSetPointsUniformCoordinates(*swarm, min, max, ndir, INSERT_VALUES));
   PetscCall(ViewSwarm(*swarm));
-  PetscCall(OutputSwarmBinary(swarm, "-from-coords-0", user));
+  PetscCall(OutputSwarmBinary(*swarm, "-from-coords-0", *user));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating <<<\n"));
   PetscCall(DMSwarmMigrate(*swarm, rmpart));
   PetscCall(ViewSwarm(*swarm));
-  PetscCall(OutputSwarmBinary(swarm, "-from-coords-1", user));
+  PetscCall(OutputSwarmBinary(*swarm, "-from-coords-1", *user));
   PetscCall(ShiftParticles(*swarm, *user, rmpart));
-  PetscCall(OutputSwarmBinary(swarm, "-from-coords-2", user));
+  PetscCall(OutputSwarmBinary(*swarm, "-from-coords-2", *user));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -430,7 +430,7 @@ int main(int argc, char **args)
   PetscCall(CreateSwarmDM(&swarm, &mesh, &user));
 
   // Output initial positions.
-  PetscCall(OutputSwarmBinary(&swarm, "-setup", &user));
+  PetscCall(OutputSwarmBinary(swarm, "-setup", user));
 
   // Set initial particle positions and velocities.
   if (user.particles.remove) {
