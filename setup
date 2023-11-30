@@ -33,6 +33,6 @@ popd &> /dev/null
 
 # Echo success
 echo 
-echo "Built ${progdir}/${target}"
+echo -e "\U1F44D Built ${progdir}/${target} \U1F44D"
 
 
