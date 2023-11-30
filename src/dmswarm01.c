@@ -312,8 +312,6 @@ CreateSwarmDM(DM *swarm, DM *mesh, UserContext *user)
   PetscCall(DMSwarmSetType(*swarm, DMSWARM_PIC));
   PetscCall(DMSwarmSetCellDM(*swarm, *mesh));
   PetscCall(DMSwarmInitializeFieldRegister(*swarm));
-  PetscCall(DMSwarmRegisterPetscDatatypeField(*swarm, "potential", 1, PETSC_REAL));
-  PetscCall(DMSwarmRegisterPetscDatatypeField(*swarm, "density", 1, PETSC_REAL));
   PetscCall(DMSwarmFinalizeFieldRegister(*swarm));
   PetscCall(PetscObjectGetComm((PetscObject)*mesh, &comm));
   MPI_Comm_size(comm, &size);
