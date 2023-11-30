@@ -423,7 +423,7 @@ int main(int argc, char **args)
   PetscCall(CreateSwarmDM(&swarm, &mesh, &user));
 
   // Output initial positions.
-  PetscCall(OutputSwarmBinary(&swarm, "-initial", &user));
+  PetscCall(OutputSwarmBinary(&swarm, "-setup", &user));
 
   // Set initial particle positions and velocities.
   if (user.particles.remove) {
@@ -433,8 +433,10 @@ int main(int argc, char **args)
   }
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n%s\n\n", rmstr));
   PetscCall(InitializeParticlesFromCellDM(&swarm, &user, user.particles.remove));
+  PetscCall(OutputSwarmBinary(&swarm, "-from-celldm", &user));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n\n%s\n\n", rmstr));
   PetscCall(InitializeParticlesFromCoordinates(&swarm, &user, user.particles.remove));
+  PetscCall(OutputSwarmBinary(&swarm, "-from-coords", &user));
 
   // Free memory.
   PetscCall(DMDestroy(&mesh));
