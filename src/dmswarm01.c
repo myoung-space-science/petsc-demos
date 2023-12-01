@@ -27,8 +27,6 @@ const char *InitTypes[] ={
 
 typedef struct {
   PetscInt np;
-  PetscInt npc;
-  PetscInt npd[NDIM];
   InitType initType;
   PetscBool remove;
 } Particles;
@@ -74,16 +72,10 @@ typedef struct {
 
 --z-shift: The amount by which to shift particle positions in the z dimension
 
--np: The total number of particles
+--init: The particle initialization scheme to use. {from-celldm, from-coords}
 
---init: The particle initialization scheme to use.
-{from-celldm, from-coords}
-
--npc: The number of particles per cell when using
-`DMSwarmInsertPointsUsingCellDM` (--init from-celldm)
-
--npd: The number of particles along each dimension when using
-`DMSwarmSetPointsUniformCoordinates` (--init from-coords)
+-np: The number of particles per cell (--init from-celldm) or the number of
+particles along every dimension (--init from-coords)
 
 --periodic: Use periodic boundaries for the grid
 
@@ -180,23 +172,7 @@ ProcessOptions(UserContext *options)
   if (found) {
     options->particles.np = intArg;
   } else {
-    options->particles.np = options->grid.nx * options->grid.ny * options->grid.nz;
-  }
-  PetscCall(PetscOptionsGetInt(NULL, NULL, "-npc", &intArg, &found));
-  if (found) {
-    options->particles.npc = intArg;
-  } else {
-    options->particles.npc = 1;
-  }
-  PetscCall(PetscOptionsGetInt(NULL, NULL, "-npd", &intArg, &found));
-  if (found) {
-    options->particles.npd[0] = intArg;
-    options->particles.npd[1] = intArg;
-    options->particles.npd[2] = intArg;
-  } else {
-    options->particles.npd[0] = options->grid.nx;
-    options->particles.npd[1] = options->grid.ny;
-    options->particles.npd[2] = options->grid.nz;
+    options->particles.np = -1;
   }
   PetscCall(PetscOptionsGetBool(NULL, NULL, "--periodic", &boolArg, &found));
   if (found) {
@@ -296,7 +272,7 @@ static PetscErrorCode
 CreateSwarmDM(DM *swarm, DM *mesh, UserContext *user)
 {
   PetscInt dim;
-  PetscInt bufsize=0;
+  PetscInt bufsize;
   PetscInt np;
   MPI_Comm comm;
   int      size;
@@ -315,9 +291,15 @@ CreateSwarmDM(DM *swarm, DM *mesh, UserContext *user)
   PetscCall(DMSwarmFinalizeFieldRegister(*swarm));
   PetscCall(PetscObjectGetComm((PetscObject)*mesh, &comm));
   MPI_Comm_size(comm, &size);
-  np = user->particles.np / size;
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Setting local sizes <<<\n"));
-  PetscCall(DMSwarmSetLocalSizes(*swarm, np, bufsize));
+  if (user->particles.np < 0) {
+    np = user->grid.nx * user->grid.ny * user->grid.nz;
+    bufsize = np;
+  } else {
+    np = user->particles.np;
+    bufsize = 0;
+  }
+  PetscCall(DMSwarmSetLocalSizes(*swarm, np / size, bufsize));
   PetscCall(DMSwarmMigrate(*swarm, PETSC_TRUE));
   PetscCall(ViewSwarm(*swarm));
 
@@ -367,10 +349,17 @@ ShiftParticles(DM swarm, UserContext user, PetscBool rmpart)
 static PetscErrorCode
 InitializeParticlesFromCellDM(DM *swarm, UserContext *user, PetscBool rmpart)
 {
+  PetscInt np;
+
   PetscFunctionBeginUser;
 
+  if (user->particles.np < 0) {
+    np = 1;
+  } else {
+    np = user->particles.np;
+  }
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Inserting points using cell DM <<<\n"));
-  PetscCall(DMSwarmInsertPointsUsingCellDM(*swarm, DMSWARMPIC_LAYOUT_REGULAR, user->particles.npc));
+  PetscCall(DMSwarmInsertPointsUsingCellDM(*swarm, DMSWARMPIC_LAYOUT_REGULAR, np));
   PetscCall(ViewSwarm(*swarm));
   PetscCall(OutputSwarmBinary(*swarm, "-initial", *user));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Migrating <<<\n"));
@@ -398,9 +387,15 @@ InitializeParticlesFromCoordinates(DM *swarm, UserContext *user, PetscBool rmpar
   max[1] = user->grid.y1;
   min[2] = user->grid.z0;
   max[2] = user->grid.z1;
-  ndir[0] = user->particles.npd[0];
-  ndir[1] = user->particles.npd[1];
-  ndir[2] = user->particles.npd[2];
+  if (user->particles.np < 0) {
+    ndir[0] = user->grid.nx;
+    ndir[1] = user->grid.ny;
+    ndir[2] = user->grid.nz;
+  } else {
+    ndir[0] = user->particles.np;
+    ndir[1] = user->particles.np;
+    ndir[2] = user->particles.np;
+  }
 
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n>>> Inserting points using uniform coordinates <<<\n"));
   PetscCall(DMSwarmSetPointsUniformCoordinates(*swarm, min, max, ndir, INSERT_VALUES));
