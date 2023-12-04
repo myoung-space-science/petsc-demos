@@ -175,14 +175,20 @@ CreateMeshDM(DM *mesh, UserContext *user)
 
 
 static PetscErrorCode
-ViewSwarm(DM swarm, const char *filename, UserContext user)
+ViewSwarm(DM swarm, const char *filestem, UserContext user)
 {
+  char        binname[PETSC_MAX_PATH_LEN]="";
+  char        xmfname[PETSC_MAX_PATH_LEN]="";
   PetscInt    npG, npL;
   PetscViewer viewer;
   Vec         target;
   int         rank;
 
   PetscFunctionBeginUser;
+
+  // Build the binary file name.
+  PetscCall(PetscStrcat(binname, filestem));
+  PetscCall(PetscStrcat(binname, ".bin"));
 
   // Echo swarm information.
   PetscCall(DMView(swarm, PETSC_VIEWER_STDOUT_WORLD));
@@ -193,7 +199,7 @@ ViewSwarm(DM swarm, const char *filename, UserContext user)
   PetscCall(PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT));
 
   // Create the binary viewer.
-  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD, filename, FILE_MODE_WRITE, &viewer));
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD, filestem, FILE_MODE_WRITE, &viewer));
 
   // Write particle positions to a binary file.
   PetscCall(DMSwarmCreateGlobalVectorFromField(swarm, DMSwarmPICField_coor, &target));
@@ -206,6 +212,13 @@ ViewSwarm(DM swarm, const char *filename, UserContext user)
 
   // Destroy the temporary vector object.
   PetscCall(VecDestroy(&target));
+
+  // Build the XDMF file name.
+  PetscCall(PetscStrcat(xmfname, filestem));
+  PetscCall(PetscStrcat(xmfname, ".xmf"));
+
+  // Write particle positions to an XDMF file.
+  PetscCall(DMSwarmViewXDMF(swarm, xmfname));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
