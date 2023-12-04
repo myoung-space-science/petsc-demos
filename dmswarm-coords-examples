@@ -9,7 +9,7 @@ pushd ~/sandbox/petsc-demos/programs/dmswarm-coords &> /dev/null
 name=baseline-nonperiodic
 echo Running ${name}
 ./dmswarm-coords -nx 8 -ny 8 -nz 8 -np 4
-python ${analyze} coords -v --np --xlim -0.1 1.1 --ylim -0.1 1.1
+python ${analyze} coords -v --xlim -0.1 1.1 --ylim -0.1 1.1
 mv coords.png ${name}.png
 echo Finished ${name}
 echo
@@ -17,7 +17,7 @@ echo
 name=baseline-periodic
 echo Running ${name}
 ./dmswarm-coords -nx 8 -ny 8 -nz 8 -np 4 --periodic
-python ${analyze} coords -v --np --xlim -0.1 1.1 --ylim -0.1 1.1
+python ${analyze} coords -v --xlim -0.1 1.1 --ylim -0.1 1.1
 mv coords.png ${name}.png
 echo Finished ${name}
 echo
@@ -25,7 +25,7 @@ echo
 name=bounds_0.9-nonperiodic
 echo Running ${name}
 ./dmswarm-coords -nx 8 -ny 8 -nz 8 -np 4 -x1 0.9 -y1 0.9 -z1 0.9
-python ${analyze} coords -v --np --xlim -0.1 1.1 --ylim -0.1 1.1
+python ${analyze} coords -v --xlim -0.1 1.1 --ylim -0.1 1.1
 mv coords.png ${name}.png
 echo Finished ${name}
 echo
@@ -33,7 +33,7 @@ echo
 name=bounds_0.9-periodic
 echo Running ${name}
 ./dmswarm-coords -nx 8 -ny 8 -nz 8 -np 4 -x1 0.9 -y1 0.9 -z1 0.9 --periodic
-python ${analyze} coords -v --np --xlim -0.1 1.1 --ylim -0.1 1.1
+python ${analyze} coords -v --xlim -0.1 1.1 --ylim -0.1 1.1
 mv coords.png ${name}.png
 echo Finished ${name}
 echo
@@ -41,7 +41,7 @@ echo
 name=bounds_0.8-periodic
 echo Running ${name}
 ./dmswarm-coords -nx 8 -ny 8 -nz 8 -np 4 -x1 0.8 -y1 0.8 -z1 0.8 --periodic
-python ${analyze} coords -v --np --xlim -0.1 1.1 --ylim -0.1 1.1
+python ${analyze} coords -v --xlim -0.1 1.1 --ylim -0.1 1.1
 mv coords.png ${name}.png
 echo Finished ${name}
 echo
@@ -49,7 +49,7 @@ echo
 name=bounds_0.9-limits_1.1-periodic
 echo Running ${name}
 ./dmswarm-coords -nx 8 -ny 8 -nz 8 -np 4 -x1 0.9 -y1 0.9 -z1 0.9 -Lx 1.1 -Ly 1.1 -Lz 1.1 --periodic
-python ${analyze} coords -v --np --xlim -0.1 1.1 --ylim -0.1 1.1
+python ${analyze} coords -v --xlim -0.1 1.1 --ylim -0.1 1.1
 mv coords.png ${name}.png
 echo Finished ${name}
 echo
