@@ -255,7 +255,6 @@ CreateSwarmDM(DM *swarm, DM *mesh, UserContext *user)
     bufsize = 0;
   }
   PetscCall(DMSwarmSetLocalSizes(*swarm, np / size, bufsize));
-  PetscCall(DMSwarmMigrate(*swarm, PETSC_TRUE));
   PetscCall(ViewSwarm(*swarm, "coords-0", *user));
 
   PetscFunctionReturn(PETSC_SUCCESS);
