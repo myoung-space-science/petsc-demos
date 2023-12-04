@@ -22,9 +22,6 @@ typedef struct {
 typedef struct {
   Grid      grid;
   Particles particles;
-  PetscReal xshift;
-  PetscReal yshift;
-  PetscReal zshift;
 } UserContext;
 
 
@@ -85,9 +82,6 @@ ProcessOptions(UserContext *options)
   options->grid.x1 = options->grid.Lx;
   options->grid.y1 = options->grid.Ly;
   options->grid.z1 = options->grid.Lz;
-  options->xshift = 0.0;
-  options->yshift = 0.0;
-  options->zshift = 0.0;
 
   PetscCall(PetscOptionsGetInt(NULL, NULL, "-nx", &intArg, &found));
   if (found) {
@@ -136,18 +130,6 @@ ProcessOptions(UserContext *options)
   PetscCall(PetscOptionsGetReal(NULL, NULL, "-z1", &realArg, &found));
   if (found) {
     options->grid.z1 = realArg;
-  }
-  PetscCall(PetscOptionsGetReal(NULL, NULL, "--x-shift", &realArg, &found));
-  if (found) {
-    options->xshift = realArg;
-  }
-  PetscCall(PetscOptionsGetReal(NULL, NULL, "--y-shift", &realArg, &found));
-  if (found) {
-    options->yshift = realArg;
-  }
-  PetscCall(PetscOptionsGetReal(NULL, NULL, "--z-shift", &realArg, &found));
-  if (found) {
-    options->zshift = realArg;
   }
   PetscCall(PetscOptionsGetInt(NULL, NULL, "-np", &intArg, &found));
   if (found) {
