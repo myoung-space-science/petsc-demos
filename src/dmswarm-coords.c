@@ -199,7 +199,7 @@ ViewSwarm(DM swarm, const char *filestem, UserContext user)
   PetscCall(PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT));
 
   // Create the binary viewer.
-  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD, filestem, FILE_MODE_WRITE, &viewer));
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD, binname, FILE_MODE_WRITE, &viewer));
 
   // Write particle positions to a binary file.
   PetscCall(DMSwarmCreateGlobalVectorFromField(swarm, DMSwarmPICField_coor, &target));
