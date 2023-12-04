@@ -1,4 +1,22 @@
-static char help[] = "MWE to initialize DMSwarm from coordinates.";
+static char help[] = \
+"Example of initializing DMSwarm from coordinates.\n\n\
+This program allows the user (via a CLI) to adjust the size of the global domain \n\
+as well as the size of the subdomain over which to distribute particles. \n\
+It accepts the following parameters \n\
+-nx [int]   : The number of grid cells in the x dimension \n\
+-ny [int]   : The number of grid cells in the y dimension \n\
+-nz [int]   : The number of grid cells in the z dimension \n\
+-Lx [float] : The length of the x dimension \n\
+-Ly [float] : The length of the y dimension \n\
+-Lz [float] : The length of the z dimension \n\
+-x0 [float] : The lower bound of particle positions in the x dimension \n\
+-y0 [float] : The lower bound of particle positions in the y dimension \n\
+-z0 [float] : The lower bound of particle positions in the z dimension \n\
+-x1 [float] : The upper bound of particle positions in the x dimension \n\
+-y1 [float] : The upper bound of particle positions in the y dimension \n\
+-z1 [float] : The upper bound of particle positions in the z dimension \n\
+-np [int]   : The number of particles to place along every dimension \n\
+--periodic  : Use periodic boundaries for the grid \n";
 
 #include <petsc.h>
 #include <petscdm.h>
@@ -27,33 +45,7 @@ typedef struct {
 
 /* Read parameter values from the options database.
 
--nx: The number of grid cells in the x dimension
-
--ny: The number of grid cells in the y dimension
-
--nz: The number of grid cells in the z dimension
-
--Lx: The length of the x dimension
-
--Ly: The length of the y dimension
-
--Lz: The length of the z dimension
-
--x0: The lower bound of particle positions in the x dimension
-
--y0: The lower bound of particle positions in the y dimension
-
--z0: The lower bound of particle positions in the z dimension
-
--x1: The upper bound of particle positions in the x dimension
-
--y1: The upper bound of particle positions in the y dimension
-
--z1: The upper bound of particle positions in the z dimension
-
--np: The number of particles along every dimension
-
---periodic: Use periodic boundaries for the grid
+See help text for parameter descriptions.
 */
 static PetscErrorCode
 ProcessOptions(UserContext *options)
