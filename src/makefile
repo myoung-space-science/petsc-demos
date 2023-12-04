@@ -7,3 +7,6 @@ dmswarm01: dmswarm01.o
 	-${CLINKER} -o dmswarm01 dmswarm01.o ${PETSC_LIB}
 	${RM} dmswarm01.o
 
+dmswarm-coords: dmswarm-coords.o
+	-${CLINKER} -o dmswarm-coords dmswarm-coords.o ${PETSC_LIB}
+	${RM} dmswarm-coords.o
