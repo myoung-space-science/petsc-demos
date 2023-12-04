@@ -283,9 +283,7 @@ InitializeParticles(DM *swarm, UserContext *user)
     ndir[1] = user->particles.np;
     ndir[2] = user->particles.np;
   }
-
   PetscCall(DMSwarmSetPointsUniformCoordinates(*swarm, min, max, ndir, INSERT_VALUES));
-  PetscCall(DMSwarmMigrate(*swarm, PETSC_TRUE));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -312,6 +310,9 @@ int main(int argc, char **args)
 
   // Initialize particle coordinates.
   PetscCall(InitializeParticles(&swarm, &user));
+
+  // Move particles between ranks.
+  PetscCall(DMSwarmMigrate(swarm, PETSC_TRUE));
 
   // View particle coordinates.
   PetscCall(ViewSwarm(swarm, "coords", user));
