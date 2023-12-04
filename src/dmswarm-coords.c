@@ -51,12 +51,6 @@ typedef struct {
 
 -z1: The upper bound of particle positions in the z dimension
 
---x-shift: The amount by which to shift particle positions in the x dimension
-
---y-shift: The amount by which to shift particle positions in the y dimension
-
---z-shift: The amount by which to shift particle positions in the z dimension
-
 -np: The number of particles along every dimension
 
 --periodic: Use periodic boundaries for the grid
