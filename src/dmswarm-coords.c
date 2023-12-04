@@ -255,7 +255,6 @@ CreateSwarmDM(DM *swarm, DM *mesh, UserContext *user)
     bufsize = 0;
   }
   PetscCall(DMSwarmSetLocalSizes(*swarm, np / size, bufsize));
-  PetscCall(ViewSwarm(*swarm, "coords-0", *user));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -286,9 +285,7 @@ InitializeParticles(DM *swarm, UserContext *user)
   }
 
   PetscCall(DMSwarmSetPointsUniformCoordinates(*swarm, min, max, ndir, INSERT_VALUES));
-  PetscCall(ViewSwarm(*swarm, "coords-1", *user));
   PetscCall(DMSwarmMigrate(*swarm, PETSC_TRUE));
-  PetscCall(ViewSwarm(*swarm, "coords-2", *user));
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -315,6 +312,9 @@ int main(int argc, char **args)
 
   // Initialize particle coordinates.
   PetscCall(InitializeParticles(&swarm, &user));
+
+  // View particle coordinates.
+  PetscCall(ViewSwarm(swarm, "coords", user));
 
   // Free memory.
   PetscCall(DMDestroy(&mesh));
