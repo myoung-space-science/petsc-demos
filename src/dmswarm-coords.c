@@ -181,7 +181,7 @@ ViewSwarm(DM swarm, const char *filestem, UserContext user)
   PetscCall(DMSwarmGetSize(swarm, &npG));
   PetscCall(DMSwarmGetLocalSize(swarm, &npL));
   MPI_Comm_rank(PETSC_COMM_WORLD, &rank);
-  PetscCall(PetscSynchronizedPrintf(PETSC_COMM_WORLD, "[%d] Total number of particles: %d (local) / %d (global)\n", rank, npG, npL));
+  PetscCall(PetscSynchronizedPrintf(PETSC_COMM_WORLD, "[%d] Total number of particles: %d (local) / %d (global)\n", rank, npL, npG));
   PetscCall(PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT));
 
   // Create the binary viewer.
