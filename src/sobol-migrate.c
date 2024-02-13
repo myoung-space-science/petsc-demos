@@ -350,8 +350,9 @@ ShiftParticles(DM *swarm, UserContext *user)
 {
   PetscInt   dim, ndim=NDIM;
   PetscInt   ip, np;
-  PetscReal *coords;
+  PetscReal *coords, c;
   PetscReal  dx[NDIM]={0.1, 0.1, 0.1};
+  PetscReal  L[NDIM]={user->grid.Lx, user->grid.Ly, user->grid.Lz};
 
   PetscFunctionBeginUser;
 
@@ -363,7 +364,13 @@ ShiftParticles(DM *swarm, UserContext *user)
 
   for (ip=0; ip<np; ip++) {
     for (dim=0; dim<ndim; dim++) {
-      coords[ip*ndim + dim] += dx[dim];
+      c = coords[ip*ndim + dim] + dx[dim];
+      if (user->grid.bc == DM_BOUNDARY_PERIODIC) {
+        if (c >= L[dim]) {
+          c -= L[dim];
+        }
+      }
+      coords[ip*ndim + dim] = c;
     }
   }
 
