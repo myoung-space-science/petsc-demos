@@ -345,6 +345,35 @@ InitializeParticles(DM *swarm, UserContext *user)
 }
 
 
+static PetscErrorCode
+ShiftParticles(DM *swarm, UserContext *user)
+{
+  PetscInt   dim, ndim=NDIM;
+  PetscInt   ip, np;
+  PetscReal *coords;
+  PetscReal  dx[NDIM]={0.1, 0.1, 0.1};
+
+  PetscFunctionBeginUser;
+
+  // Get a representation of the particle coordinates.
+  PetscCall(DMSwarmGetField(*swarm, DMSwarmPICField_coor, NULL, NULL, (void **)&coords));
+
+  // Get the local number of particles.
+  PetscCall(DMSwarmGetLocalSize(*swarm, &np));
+
+  for (ip=0; ip<np; ip++) {
+    for (dim=0; dim<ndim; dim++) {
+      coords[ip*ndim + dim] += dx[dim];
+    }
+  }
+
+  // Restore the coordinates array.
+  PetscCall(DMSwarmRestoreField(*swarm, DMSwarmPICField_coor, NULL, NULL, (void **)&coords));
+
+  PetscFunctionReturn(PETSC_SUCCESS);
+}
+
+
 int main(int argc, char **args)
 {
   UserContext user;
@@ -370,6 +399,14 @@ int main(int argc, char **args)
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Initializing particles ...\n"));
   PetscCall(InitializeParticles(&swarm, &user));
   PetscCall(ViewSwarm(swarm, "coords-initial", user));
+
+  // Shift particle coordinates.
+  PetscCall(ShiftParticles(&swarm, &user));
+  PetscCall(ViewSwarm(swarm, "coords-shift1", user));
+  PetscCall(ShiftParticles(&swarm, &user));
+  PetscCall(ViewSwarm(swarm, "coords-shift2", user));
+  PetscCall(ShiftParticles(&swarm, &user));
+  PetscCall(ViewSwarm(swarm, "coords-shift3", user));
 
   // Move particles between ranks.
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Migrating particles ...\n"));
