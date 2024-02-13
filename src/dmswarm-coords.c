@@ -292,22 +292,28 @@ int main(int argc, char **args)
   PetscCall(CreateMeshDM(&mesh, &user));
 
   // Set up particle-swarm DM.
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Creating swarm ...\n"));
   PetscCall(CreateSwarmDM(&swarm, &mesh, &user));
 
   // Initialize particle coordinates.
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Initializing particles ...\n"));
   PetscCall(InitializeParticles(&swarm, &user));
 
   // Move particles between ranks.
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Migrating particles ...\n"));
   PetscCall(DMSwarmMigrate(swarm, PETSC_TRUE));
 
   // View particle coordinates.
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Viewing swarm ...\n"));
   PetscCall(ViewSwarm(swarm, "coords", user));
 
   // Free memory.
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Freeing memory ...\n"));
   PetscCall(DMDestroy(&mesh));
   PetscCall(DMDestroy(&swarm));
 
   // Finalize PETSc and MPI.
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Finishing simulation ...\n"));
   PetscCall(PetscFinalize());
 
   return 0;
