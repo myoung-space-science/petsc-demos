@@ -369,6 +369,10 @@ ShiftParticles(DM *swarm, UserContext *user)
         if (c >= L[dim]) {
           c -= L[dim];
         }
+      } else { // pile up at boundary
+        if (c >= L[dim]) {
+          c = L[dim];
+        }
       }
       coords[ip*ndim + dim] = c;
     }
