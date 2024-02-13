@@ -398,15 +398,15 @@ int main(int argc, char **args)
   // Initialize particle coordinates.
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Initializing particles ...\n"));
   PetscCall(InitializeParticles(&swarm, &user));
-  PetscCall(ViewSwarm(swarm, "coords-initial", user));
+  PetscCall(ViewSwarm(swarm, "coords-0", user));
 
   // Shift particle coordinates.
   PetscCall(ShiftParticles(&swarm, &user));
-  PetscCall(ViewSwarm(swarm, "coords-shift1", user));
+  PetscCall(ViewSwarm(swarm, "coords-1", user));
   PetscCall(ShiftParticles(&swarm, &user));
-  PetscCall(ViewSwarm(swarm, "coords-shift2", user));
+  PetscCall(ViewSwarm(swarm, "coords-2", user));
   PetscCall(ShiftParticles(&swarm, &user));
-  PetscCall(ViewSwarm(swarm, "coords-shift3", user));
+  PetscCall(ViewSwarm(swarm, "coords-3", user));
 
   // Move particles between ranks.
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Migrating particles ...\n"));
@@ -415,10 +415,8 @@ int main(int argc, char **args)
   PetscCall(DMSwarmMigrate(swarm, PETSC_TRUE));
   PetscCall(DMSwarmGetSize(swarm, &Np1));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, "    Total number of particles after migration: %d\n", Np1));
-
-  // View particle coordinates.
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Viewing swarm ...\n"));
-  PetscCall(ViewSwarm(swarm, "coords-final", user));
+  PetscCall(ViewSwarm(swarm, "coords-4", user));
 
   // Free memory.
   PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Freeing memory ...\n"));
