@@ -349,6 +349,7 @@ int main(int argc, char **args)
 {
   UserContext user;
   DM          mesh, swarm;
+  PetscInt    Np0, Np1;
 
   PetscFunctionBeginUser;
 
@@ -362,28 +363,33 @@ int main(int argc, char **args)
   PetscCall(CreateMeshDM(&mesh, &user));
 
   // Set up particle-swarm DM.
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Creating swarm ...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Creating swarm ...\n"));
   PetscCall(CreateSwarmDM(&swarm, &mesh, &user));
 
   // Initialize particle coordinates.
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Initializing particles ...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Initializing particles ...\n"));
   PetscCall(InitializeParticles(&swarm, &user));
+  PetscCall(ViewSwarm(swarm, "coords-initial", user));
 
   // Move particles between ranks.
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Migrating particles ...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Migrating particles ...\n"));
+  PetscCall(DMSwarmGetSize(swarm, &Np0));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "    Total number of particles before migration: %d\n", Np0));
   PetscCall(DMSwarmMigrate(swarm, PETSC_TRUE));
+  PetscCall(DMSwarmGetSize(swarm, &Np1));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "    Total number of particles after migration: %d\n", Np1));
 
   // View particle coordinates.
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Viewing swarm ...\n"));
-  PetscCall(ViewSwarm(swarm, "coords", user));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Viewing swarm ...\n"));
+  PetscCall(ViewSwarm(swarm, "coords-final", user));
 
   // Free memory.
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Freeing memory ...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Freeing memory ...\n"));
   PetscCall(DMDestroy(&mesh));
   PetscCall(DMDestroy(&swarm));
 
   // Finalize PETSc and MPI.
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "Finishing simulation ...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, ">>> Finishing simulation ...\n"));
   PetscCall(PetscFinalize());
 
   return 0;
