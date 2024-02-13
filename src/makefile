@@ -10,3 +10,7 @@ dmswarm01: dmswarm01.o
 dmswarm-coords: dmswarm-coords.o
 	-${CLINKER} -o dmswarm-coords dmswarm-coords.o ${PETSC_LIB}
 	${RM} dmswarm-coords.o
+
+sobol-migrate: sobol-migrate.o
+	-${CLINKER} -o sobol-migrate sobol-migrate.o ${PETSC_LIB}
+	${RM} sobol-migrate.o
