@@ -1,6 +1,8 @@
+# PETSc Demos
+
 This is a place to adapt or create PETSc examples.
 
-Steps (starting from `~/sandbox/petsc-demos`)
+Follow these steps to create and build programs, assuming you are in the cloned repository
 
 * For new programs
   * Create source code in `src`
