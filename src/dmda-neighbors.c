@@ -5,6 +5,8 @@ static char help[] = \
 #include <petscdm.h>
 #include <petscdmda.h>
 
+#define NDIM 3
+
 int main(int argc, char **args)
 {
   DM dmda;
@@ -24,6 +26,35 @@ int main(int argc, char **args)
   PetscReal          z0=0.0;
   PetscReal          z1=1.0;
   const PetscMPIInt *ranks;
+  PetscInt           ix, iy, iz, ir;
+  PetscMPIInt        neighbor;
+  const char        *ijk[NDIM*NDIM*NDIM]={"(i-1, j-1, k-1)", \
+                                          "(i  , j-1, k-1)", \
+                                          "(i+1, j-1, k-1)", \
+                                          "(i-1, j  , k-1)", \
+                                          "(i  , j  , k-1)", \
+                                          "(i+1, j  , k-1)", \
+                                          "(i-1, j+1, k-1)", \
+                                          "(i  , j+1, k-1)", \
+                                          "(i+1, j+1, k-1)", \
+                                          "(i-1, j-1, k  )", \
+                                          "(i  , j-1, k  )", \
+                                          "(i+1, j-1, k  )", \
+                                          "(i-1, j  , k  )", \
+                                          "(i  , j  , k  )", \
+                                          "(i+1, j  , k  )", \
+                                          "(i-1, j+1, k  )", \
+                                          "(i  , j+1, k  )", \
+                                          "(i+1, j+1, k  )", \
+                                          "(i-1, j-1, k+1)", \
+                                          "(i  , j-1, k+1)", \
+                                          "(i+1, j-1, k+1)", \
+                                          "(i-1, j  , k+1)", \
+                                          "(i  , j  , k+1)", \
+                                          "(i+1, j  , k+1)", \
+                                          "(i-1, j+1, k+1)", \
+                                          "(i  , j+1, k+1)", \
+                                          "(i+1, j+1, k+1)"};
 
   PetscFunctionBeginUser;
 
@@ -38,8 +69,14 @@ int main(int argc, char **args)
   PetscCall(DMView(dmda, PETSC_VIEWER_STDOUT_WORLD));
   PetscCall(DMDAGetNeighbors(dmda, &ranks));
   PetscCall(PetscSynchronizedPrintf(PETSC_COMM_WORLD, "[%d]\n", rank));
-  for (int i=0; i<27; i++) {
-    PetscCall(PetscSynchronizedPrintf(PETSC_COMM_WORLD, "ranks[%02d] = %02d\n", i, ranks[i]));
+  for (iz=0; iz<NDIM; iz++) {
+    for (iy=0; iy<NDIM; iy++) {
+      for (ix=0; ix<NDIM; ix++) {
+        ir = iz*NDIM*NDIM + iy*NDIM + ix;
+        neighbor = ranks[ir];
+        PetscCall(PetscSynchronizedPrintf(PETSC_COMM_WORLD, "neighbor at %s is ranks[%02d] = %02d\n", ijk[ir], ir, neighbor));
+      }
+    }
   }
   PetscCall(PetscSynchronizedPrintf(PETSC_COMM_WORLD, "\n"));
   PetscCall(PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT));
