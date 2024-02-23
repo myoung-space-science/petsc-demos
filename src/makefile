@@ -14,3 +14,7 @@ dmswarm-coords: dmswarm-coords.o
 sobol-migrate: sobol-migrate.o
 	-${CLINKER} -o sobol-migrate sobol-migrate.o ${PETSC_LIB}
 	${RM} sobol-migrate.o
+
+dmda-neighbors: dmda-neighbors.o
+	-${CLINKER} -o dmda-neighbors dmda-neighbors.o ${PETSC_LIB}
+	${RM} dmda-neighbors.o
